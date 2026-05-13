@@ -1,24 +1,10 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getToken } from "next-auth/jwt";
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
-export async function middleware(req: NextRequest) {
-  const token = await getToken({
-    req,
-    secret: process.env.AUTH_SECRET,
-    salt: process.env.NODE_ENV === "production"
-      ? "__Secure-authjs.session-token"
-      : "authjs.session-token",
-  });
-
-  const isAdmin = req.nextUrl.pathname.startsWith("/admin");
-
-  if (isAdmin && !token) {
-    return NextResponse.redirect(new URL("/login", req.nextUrl));
-  }
-
+export function middleware(req: NextRequest) {
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/admin/:path*"],
+  matcher: [],
 };

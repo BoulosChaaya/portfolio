@@ -47,7 +47,7 @@ function ExperienceForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="flex flex-col gap-1.5">
           <Label>Company</Label>
           <Input name="company" value={form.company} onChange={handleChange} required />
@@ -103,8 +103,8 @@ export function ExperienceTable({ items }: { items: Experience[] }) {
       )}
 
       <div className="border rounded-xl overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-zinc-50 dark:bg-zinc-800 border-b">
+        <table className="w-full text-sm max-md:block">
+          <thead className="bg-zinc-50 dark:bg-zinc-800 border-b max-md:hidden">
             <tr>
               <th className="text-left px-4 py-3 font-medium text-zinc-600 dark:text-zinc-400">Company</th>
               <th className="text-left px-4 py-3 font-medium text-zinc-600 dark:text-zinc-400">Role</th>
@@ -112,20 +112,20 @@ export function ExperienceTable({ items }: { items: Experience[] }) {
               <th className="text-left px-4 py-3 font-medium text-zinc-600 dark:text-zinc-400">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y">
+          <tbody className="divide-y max-md:block">
             {items.length === 0 && (
-              <tr>
-                <td colSpan={4} className="px-4 py-8 text-center text-zinc-400">No experience yet</td>
+              <tr className="max-md:block">
+                <td colSpan={4} className="max-md:block px-4 py-8 text-center text-zinc-400">No experience yet</td>
               </tr>
             )}
             {items.map((item) => (
               <React.Fragment key={item.id}>
-                <tr key={item.id} className="bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800">
-                  <td className="px-4 py-3 font-medium">{item.company}</td>
-                  <td className="px-4 py-3 text-zinc-500">{item.role}</td>
-                  <td className="px-4 py-3 text-zinc-500">{item.duration || "—"}</td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-3">
+                <tr key={item.id} className="bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800 max-md:flex max-md:flex-col max-md:py-2">
+                  <td className="max-md:block max-md:py-1 [overflow-wrap:anywhere] px-4 py-3 font-medium">{item.company}</td>
+                  <td className="max-md:block max-md:py-1 [overflow-wrap:anywhere] px-4 py-3 text-zinc-500">{item.role}</td>
+                  <td className="max-md:block max-md:py-1 [overflow-wrap:anywhere] px-4 py-3 text-zinc-500">{item.duration || "—"}</td>
+                  <td className="max-md:block max-md:py-1 [overflow-wrap:anywhere] px-4 py-3">
+                    <div className="flex flex-wrap items-center gap-3">
                       <button
                         onClick={() => setEditingId(editingId === item.id ? null : item.id)}
                         className="text-blue-500 text-xs hover:underline"
@@ -137,8 +137,8 @@ export function ExperienceTable({ items }: { items: Experience[] }) {
                   </td>
                 </tr>
                 {editingId === item.id && (
-                  <tr key={`edit-${item.id}`}>
-                    <td colSpan={4} className="px-4 py-4 bg-zinc-50 dark:bg-zinc-800">
+                  <tr key={`edit-${item.id}`} className="max-md:block">
+                    <td colSpan={4} className="max-md:block max-md:px-3 px-4 py-4 bg-zinc-50 dark:bg-zinc-800">
                       <ExperienceForm
                         initial={{
                           company: item.company,

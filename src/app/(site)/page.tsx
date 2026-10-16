@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
-import { projects, posts } from "@/lib/db/schema";
-import { eq, desc } from "drizzle-orm";
+import { projects, posts, settings } from "@/lib/db/schema";
+import { eq, desc, inArray } from "drizzle-orm";
 import Link from "next/link";
 
 export default async function HomePage() {
@@ -18,12 +18,19 @@ export default async function HomePage() {
     .orderBy(desc(posts.createdAt))
     .limit(2);
 
+  // "Currently building" comes from the dashboard (Skills & About → Currently), not the code.
+  const current = Object.fromEntries(
+    (await db.select().from(settings).where(inArray(settings.key, ["currently_building", "currently_building_detail"])))
+      .map((row) => [row.key, row.value ?? ""]),
+  );
+  const building = (current.currently_building ?? "").split(/\s*[,;]\s*/).filter(Boolean);
+
   const skills = [
     { label: "Frontend", value: "React · Next.js · TypeScript" },
-    { label: "Backend", value: "Hono · tRPC · Node.js" },
+    { label: "Backend", value: "Node.js · Hono · tRPC" },
     { label: "Database", value: "PostgreSQL · Drizzle · Prisma" },
-    { label: "Deploy", value: "Vercel · Railway · Docker" },
-    { label: "Learning", value: "AWS" },
+    { label: "Testing", value: "Playwright · GitHub Actions" },
+    { label: "Deploy", value: "Vercel · Render · Docker" },
   ];
 
   return (
@@ -61,8 +68,8 @@ export default async function HomePage() {
 
           <p className="text-[15px] md:text-[16px] leading-[1.8] text-zinc-500 max-w-xl mx-auto mb-10">
             Based in Beirut, Lebanon. I build web applications end to end — from
-            architecture and backend to UI and deployment. Currently shipping SaaS
-            products and taking on remote work.
+            architecture and backend to UI, testing and deployment. Open to remote
+            work.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
@@ -174,29 +181,21 @@ export default async function HomePage() {
       </section>
 
       {/* Currently Building */}
+      {building.length > 0 && (
       <section className="border-b border-black/8 dark:border-white/8">
         <div className="max-w-5xl mx-auto px-5 md:px-8 py-12">
           <p className="text-[13px] uppercase tracking-widest text-zinc-400 mb-8">
             Currently Building
           </p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {[
-              {
-                name: "HR & Payroll SaaS",
-                desc: "Multi-tenant HR platform for SMBs — payroll, time tracking, PTO, and employee portal.",
-              },
-              {
-                name: "Invoice SaaS",
-                desc: "Multi-workspace invoicing with Stripe payments, PDF generation, and client portal.",
-              },
-            ].map((item) => (
+          <div className={`grid grid-cols-1 gap-4 ${building.length > 1 ? "md:grid-cols-2" : ""}`}>
+            {building.map((name, i) => ({ name, desc: i === 0 ? current.currently_building_detail : "" })).map((item) => (
               <div
                 key={item.name}
                 className="border border-black/8 dark:border-white/8 rounded-xl p-6 bg-white dark:bg-zinc-900 flex items-start justify-between gap-4"
               >
                 <div>
                   <h3 className="text-[15px] font-medium mb-1.5">{item.name}</h3>
-                  <p className="text-[13px] text-zinc-500 leading-relaxed">{item.desc}</p>
+                  {item.desc && <p className="text-[13px] text-zinc-500 leading-relaxed">{item.desc}</p>}
                 </div>
                 <span
                   className="text-[10px] uppercase tracking-widest px-2.5 py-1 rounded-full whitespace-nowrap shrink-0 font-medium"
@@ -209,6 +208,7 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+      )}
 
       {/* Blog */}
       {latestPosts.length > 0 && (

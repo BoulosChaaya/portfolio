@@ -1,8 +1,17 @@
+import type { Metadata } from "next";
 import { db } from "@/lib/db";
 import { posts } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { PostBody } from "@/components/site/post-body";
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  const post = await db.query.posts.findFirst({ where: eq(posts.slug, slug) });
+  if (!post || !post.published) return {};
+  return { title: `${post.title} — Boulos Chaaya`, description: post.excerpt ?? undefined };
+}
 
 export default async function BlogPostPage({
   params,
@@ -34,13 +43,7 @@ export default async function BlogPostPage({
         <p className="text-[15px] text-zinc-500 mb-10 leading-relaxed pb-10 border-b border-black/8 dark:border-white/8">
           {post.excerpt}
         </p>
-        <div className="space-y-5">
-          {post.content?.split("\n").filter(Boolean).map((line, i) => (
-            <p key={i} className="text-[15px] leading-[1.85] text-zinc-700 dark:text-zinc-300">
-              {line}
-            </p>
-          ))}
-        </div>
+        <PostBody content={post.content ?? ""} />
       </div>
     </main>
   );

@@ -6,7 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { createPost, updatePost, deletePost, togglePostPublished } from "@/lib/actions/blog";
+import { createPost, updatePost, deletePost, togglePostPublished, type PostFields } from "@/lib/actions/blog";
+import type { ActionResult } from "@/lib/actions/result";
+import { ActionError, RowAction, useAdminAction } from "./use-admin-action";
 
 type Post = {
   id: number;
@@ -18,7 +20,7 @@ type Post = {
   published: boolean | null;
 };
 
-const emptyForm = {
+const emptyForm: PostFields = {
   title: "", slug: "", excerpt: "", content: "", category: "",
 };
 
@@ -28,23 +30,21 @@ function PostForm({
   onCancel,
   submitLabel,
 }: {
-  initial: typeof emptyForm;
-  onSubmit: (data: typeof emptyForm) => Promise<void>;
+  initial: PostFields;
+  onSubmit: (data: PostFields) => Promise<ActionResult>;
   onCancel: () => void;
   submitLabel: string;
 }) {
   const [form, setForm] = useState(initial);
-  const [loading, setLoading] = useState(false);
+  const { pending: loading, error, run } = useAdminAction();
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   }
 
-  async function handleSubmit(e: React.FormEvent) {
+  function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setLoading(true);
-    await onSubmit(form);
-    setLoading(false);
+    run(() => onSubmit(form), onCancel);
   }
 
   return (
@@ -71,6 +71,7 @@ function PostForm({
         <Label>Content</Label>
         <Textarea name="content" value={form.content} onChange={handleChange} rows={8} />
       </div>
+      <ActionError error={error} />
       <div className="flex gap-3">
         <Button type="submit" disabled={loading}>
           {loading ? "Saving..." : submitLabel}
@@ -85,15 +86,6 @@ export function BlogTable({ posts }: { posts: Post[] }) {
   const [adding, setAdding] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
 
-  async function handleCreate(data: typeof emptyForm) {
-    await createPost(data);
-    setAdding(false);
-  }
-
-  async function handleUpdate(id: number, data: typeof emptyForm) {
-    await updatePost(id, data);
-    setEditingId(null);
-  }
 
   return (
     <div className="space-y-6">
@@ -106,7 +98,7 @@ export function BlogTable({ posts }: { posts: Post[] }) {
           <h3 className="font-medium mb-4">New Post</h3>
           <PostForm
             initial={emptyForm}
-            onSubmit={handleCreate}
+            onSubmit={createPost}
             onCancel={() => setAdding(false)}
             submitLabel="Save Draft"
           />
@@ -147,14 +139,8 @@ export function BlogTable({ posts }: { posts: Post[] }) {
                       >
                         {editingId === p.id ? "Close" : "Edit"}
                       </button>
-                      <form action={togglePostPublished.bind(null, p.id, !p.published)}>
-                        <button className="text-zinc-500 text-xs hover:underline">
-                          {p.published ? "Unpublish" : "Publish"}
-                        </button>
-                      </form>
-                      <form action={deletePost.bind(null, p.id)}>
-                        <button className="text-red-500 text-xs hover:underline">Delete</button>
-                      </form>
+                      <RowAction label={p.published ? "Unpublish" : "Publish"} action={() => togglePostPublished(p.id, !p.published)} />
+                      <RowAction label="Delete" className="text-red-500" confirmText={`Delete "${p.title}"? This cannot be undone.`} action={() => deletePost(p.id)} />
                     </div>
                   </td>
                 </tr>
@@ -169,7 +155,7 @@ export function BlogTable({ posts }: { posts: Post[] }) {
                           content: p.content || "",
                           category: p.category || "",
                         }}
-                        onSubmit={(data) => handleUpdate(p.id, data)}
+                        onSubmit={(data) => updatePost(p.id, data)}
                         onCancel={() => setEditingId(null)}
                         submitLabel="Update Post"
                       />

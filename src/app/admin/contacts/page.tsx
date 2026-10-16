@@ -24,8 +24,8 @@ export default async function ContactsPage() {
         </a>
       </div>
       <div className="border rounded-xl overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-zinc-50 dark:bg-zinc-800 border-b">
+        <table className="w-full text-sm max-md:block">
+          <thead className="bg-zinc-50 dark:bg-zinc-800 border-b max-md:hidden">
             <tr>
               <th className="text-left px-4 py-3 font-medium text-zinc-600 dark:text-zinc-400">Name</th>
               <th className="text-left px-4 py-3 font-medium text-zinc-600 dark:text-zinc-400">Email</th>
@@ -35,29 +35,29 @@ export default async function ContactsPage() {
               <th className="text-left px-4 py-3 font-medium text-zinc-600 dark:text-zinc-400">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y">
+          <tbody className="divide-y max-md:block">
             {all.length === 0 && (
-              <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-zinc-400">
+              <tr className="max-md:block">
+                <td colSpan={6} className="max-md:block px-4 py-8 text-center text-zinc-400">
                   No messages yet
                 </td>
               </tr>
             )}
             {all.map((c) => (
-              <tr key={c.id} className="bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800">
-                <td className="px-4 py-3 font-medium">{c.name}</td>
-                <td className="px-4 py-3 text-zinc-500">{c.email}</td>
-                <td className="px-4 py-3 text-zinc-500">{c.subject || "—"}</td>
-                <td className="px-4 py-3">
+              <tr key={c.id} className="bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800 max-md:flex max-md:flex-col max-md:py-2">
+                <td className="max-md:block max-md:py-1 [overflow-wrap:anywhere] px-4 py-3 font-medium">{c.name}</td>
+                <td className="max-md:block max-md:py-1 [overflow-wrap:anywhere] px-4 py-3 text-zinc-500">{c.email}</td>
+                <td className="max-md:block max-md:py-1 [overflow-wrap:anywhere] px-4 py-3 text-zinc-500">{c.subject || "—"}</td>
+                <td className="max-md:block max-md:py-1 [overflow-wrap:anywhere] px-4 py-3">
                   <Badge variant={c.read ? "secondary" : "default"}>
                     {c.read ? "Read" : "Unread"}
                   </Badge>
                 </td>
-                <td className="px-4 py-3 text-zinc-400 text-xs">
+                <td className="max-md:block max-md:py-1 [overflow-wrap:anywhere] px-4 py-3 text-zinc-400 text-xs">
                   {c.createdAt?.toISOString().split("T")[0] ?? "—"}
                 </td>
-                <td className="px-4 py-3">
-                  <div className="flex items-center gap-3">
+                <td className="max-md:block max-md:py-1 [overflow-wrap:anywhere] px-4 py-3">
+                  <div className="flex flex-wrap items-center gap-3">
                     {!c.read && (
                       <RowAction label="Mark read" className="text-blue-500" action={markRead.bind(null, c.id)} />
                     )}

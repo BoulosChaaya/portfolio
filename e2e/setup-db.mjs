@@ -29,6 +29,7 @@ await seed.query("INSERT INTO contacts (name, email, subject, message) VALUES ('
 await seed.query("INSERT INTO posts (slug, title, excerpt, content, category, published) VALUES ('secret-draft', 'Secret draft post', 'Not yet', 'Draft body', 'Notes', false)");
 await seed.query("INSERT INTO projects (slug, title, excerpt, published, \"order\") VALUES ('unlisted', 'Unlisted project', 'Hidden', false, 2)");
 await seed.query("INSERT INTO projects (slug, title, excerpt, published, \"order\") VALUES ('listed', 'Listed project', 'Shown', true, 1)");
+await seed.query("INSERT INTO experience (company, role, location, duration, description, \"order\") VALUES ('Seed Company', 'Seed Role', 'Beirut', '2024', 'Seeded experience', 1)");
 // Public pages are rendered at build time, so their content is seeded here.
 await seed.query("INSERT INTO settings (key, value) VALUES ('currently_building', 'Test Engine'), ('currently_building_detail', 'A seeded description of what is being built.')");
 await seed.query(`INSERT INTO posts (slug, title, excerpt, content, category, published) VALUES ('formatted', 'Formatted post', 'Shows the formats', $1, 'Notes', true)`,

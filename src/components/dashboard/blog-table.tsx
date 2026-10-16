@@ -49,7 +49,7 @@ function PostForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="flex flex-col gap-1.5">
           <Label>Title</Label>
           <Input name="title" value={form.title} onChange={handleChange} required />
@@ -106,8 +106,8 @@ export function BlogTable({ posts }: { posts: Post[] }) {
       )}
 
       <div className="border rounded-xl overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-zinc-50 dark:bg-zinc-800 border-b">
+        <table className="w-full text-sm max-md:block">
+          <thead className="bg-zinc-50 dark:bg-zinc-800 border-b max-md:hidden">
             <tr>
               <th className="text-left px-4 py-3 font-medium text-zinc-600 dark:text-zinc-400">Title</th>
               <th className="text-left px-4 py-3 font-medium text-zinc-600 dark:text-zinc-400">Category</th>
@@ -115,24 +115,24 @@ export function BlogTable({ posts }: { posts: Post[] }) {
               <th className="text-left px-4 py-3 font-medium text-zinc-600 dark:text-zinc-400">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y">
+          <tbody className="divide-y max-md:block">
             {posts.length === 0 && (
-              <tr>
-                <td colSpan={4} className="px-4 py-8 text-center text-zinc-400">No posts yet</td>
+              <tr className="max-md:block">
+                <td colSpan={4} className="max-md:block px-4 py-8 text-center text-zinc-400">No posts yet</td>
               </tr>
             )}
             {posts.map((p) => (
               <React.Fragment key={p.id}>
-                <tr key={p.id} className="bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800">
-                  <td className="px-4 py-3 font-medium">{p.title}</td>
-                  <td className="px-4 py-3 text-zinc-500">{p.category || "—"}</td>
-                  <td className="px-4 py-3">
+                <tr key={p.id} className="bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800 max-md:flex max-md:flex-col max-md:py-2">
+                  <td className="max-md:block max-md:py-1 [overflow-wrap:anywhere] px-4 py-3 font-medium">{p.title}</td>
+                  <td className="max-md:block max-md:py-1 [overflow-wrap:anywhere] px-4 py-3 text-zinc-500">{p.category || "—"}</td>
+                  <td className="max-md:block max-md:py-1 [overflow-wrap:anywhere] px-4 py-3">
                     <Badge variant={p.published ? "default" : "secondary"}>
                       {p.published ? "Published" : "Draft"}
                     </Badge>
                   </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-3">
+                  <td className="max-md:block max-md:py-1 [overflow-wrap:anywhere] px-4 py-3">
+                    <div className="flex flex-wrap items-center gap-3">
                       <button
                         onClick={() => setEditingId(editingId === p.id ? null : p.id)}
                         className="text-blue-500 text-xs hover:underline"
@@ -145,8 +145,8 @@ export function BlogTable({ posts }: { posts: Post[] }) {
                   </td>
                 </tr>
                 {editingId === p.id && (
-                  <tr key={`edit-${p.id}`}>
-                    <td colSpan={4} className="px-4 py-4 bg-zinc-50 dark:bg-zinc-800">
+                  <tr key={`edit-${p.id}`} className="max-md:block">
+                    <td colSpan={4} className="max-md:block max-md:px-3 px-4 py-4 bg-zinc-50 dark:bg-zinc-800">
                       <PostForm
                         initial={{
                           title: p.title,

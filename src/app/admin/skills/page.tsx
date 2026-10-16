@@ -1,10 +1,8 @@
-import { db } from "@/lib/db";
-import { skills, settings } from "@/lib/db/schema";
+import { adminSkills } from "@/lib/admin-data";
 import { SkillsManager } from "@/components/dashboard/skills-manager";
 
 export default async function SkillsPage() {
-  const allSkills = await db.select().from(skills).orderBy(skills.category, skills.order);
-  const allSettings = await db.select().from(settings);
+  const { skills: allSkills, settings: allSettings } = await adminSkills();
   const settingsMap = Object.fromEntries(allSettings.map((s) => [s.key, s.value ?? ""]));
 
   return (

@@ -4,12 +4,7 @@ import { db } from "@/lib/db";
 import { posts } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
-import { auth } from "@/lib/auth";
-
-async function requireAuth() {
-  const session = await auth();
-  if (!session) throw new Error("Unauthorized");
-}
+import { assertAdmin } from "@/lib/dal";
 
 export async function createPost(data: {
   title: string;
@@ -18,7 +13,7 @@ export async function createPost(data: {
   content: string;
   category: string;
 }) {
-  await requireAuth();
+  await assertAdmin();
   await db.insert(posts).values({ ...data, published: false });
   revalidatePath("/admin/blog");
   revalidatePath("/blog");
@@ -31,21 +26,21 @@ export async function updatePost(id: number, data: {
   content: string;
   category: string;
 }) {
-  await requireAuth();
+  await assertAdmin();
   await db.update(posts).set({ ...data, updatedAt: new Date() }).where(eq(posts.id, id));
   revalidatePath("/admin/blog");
   revalidatePath("/blog");
 }
 
 export async function deletePost(id: number) {
-  await requireAuth();
+  await assertAdmin();
   await db.delete(posts).where(eq(posts.id, id));
   revalidatePath("/admin/blog");
   revalidatePath("/blog");
 }
 
 export async function togglePostPublished(id: number, published: boolean) {
-  await requireAuth();
+  await assertAdmin();
   await db.update(posts).set({ published }).where(eq(posts.id, id));
   revalidatePath("/admin/blog");
   revalidatePath("/blog");

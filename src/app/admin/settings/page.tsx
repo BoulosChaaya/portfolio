@@ -1,9 +1,8 @@
-import { db } from "@/lib/db";
-import { settings } from "@/lib/db/schema";
+import { adminSettings } from "@/lib/admin-data";
 import { SettingsForm } from "@/components/dashboard/settings-form";
 
 export default async function SettingsPage() {
-  const all = await db.select().from(settings);
+  const all = await adminSettings();
   const data = Object.fromEntries(all.map((s) => [s.key, s.value ?? ""]));
 
   return (

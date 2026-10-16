@@ -1,9 +1,8 @@
-import { db } from "@/lib/db";
-import { posts } from "@/lib/db/schema";
+import { adminPosts } from "@/lib/admin-data";
 import { BlogTable } from "@/components/dashboard/blog-table";
 
 export default async function BlogPage() {
-  const allPosts = await db.select().from(posts).orderBy(posts.createdAt);
+  const allPosts = await adminPosts();
   return (
     <div>
       <div className="flex items-center justify-between mb-8">

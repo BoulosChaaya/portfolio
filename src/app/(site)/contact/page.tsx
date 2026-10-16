@@ -9,13 +9,20 @@ import { Textarea } from "@/components/ui/textarea";
 
 export default function ContactPage() {
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [message, setMessage] = useState("Something went wrong. Please try again.");
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setStatus("loading");
     const formData = new FormData(e.currentTarget);
-    const result = await submitContact(formData);
-    setStatus(result?.success ? "success" : "error");
+    try {
+      const result = await submitContact(formData);
+      if (result.success) return setStatus("success");
+      setMessage(result.error);
+    } catch {
+      setMessage("Could not reach the server. Check your connection and try again.");
+    }
+    setStatus("error");
   }
 
   return (
@@ -79,8 +86,8 @@ export default function ContactPage() {
               />
             </div>
             {status === "error" && (
-              <p className="text-[13px] text-red-500">
-                Something went wrong. Please try again.
+              <p role="alert" className="text-[13px] text-red-500">
+                {message}
               </p>
             )}
             <div className="flex">

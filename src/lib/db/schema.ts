@@ -74,3 +74,13 @@ export const skills = pgTable("skills", {
   category: text("category").notNull(),
   order: integer("order").default(0),
 });
+/**
+ * Failed sign-in attempts, per email and overall, in a rolling 15-minute window (see
+ * src/lib/login-throttle.ts). Kept in the database because each Vercel function instance has its
+ * own memory.
+ */
+export const loginThrottle = pgTable("login_throttle", {
+  key: text("key").primaryKey(),
+  failures: integer("failures").notNull().default(0),
+  windowStart: timestamp("window_start", { withTimezone: true }).notNull().defaultNow(),
+});

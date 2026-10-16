@@ -75,7 +75,7 @@ export default async function AdminPage() {
         <p className="text-[11px] uppercase tracking-widest text-zinc-400 px-5 py-3 border-b border-black/6 dark:border-white/6">
           Quick actions
         </p>
-        {quickLinks.map((l, i) => (
+        {quickLinks.map((l) => (
           <Link
             key={l.label}
             href={l.href}

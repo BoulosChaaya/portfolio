@@ -16,7 +16,13 @@ export async function GET() {
   const header = "Name,Email,Subject,Message,Read,Date\n";
   const rows = all.map((c) => {
     const date = c.createdAt?.toISOString().split("T")[0] ?? "";
-    const escape = (v: string | null) => `"${(v ?? "").replace(/"/g, '""')}"`;
+    // Visitors write these fields. A cell starting with = + - @ (or a tab/return) is run as a
+    // formula when the file is opened in a spreadsheet, so it is prefixed with ' to stay text.
+    const escape = (v: string | null) => {
+      const value = v ?? "";
+      const safe = /^[=+\-@\t\r]/.test(value) ? `'${value}` : value;
+      return `"${safe.replace(/"/g, '""')}"`;
+    };
     return [
       escape(c.name),
       escape(c.email),
@@ -31,7 +37,8 @@ export async function GET() {
 
   return new Response(csv, {
     headers: {
-      "Content-Type": "text/csv",
+      "Content-Type": "text/csv; charset=utf-8",
+      "Cache-Control": "no-store",
       "Content-Disposition": `attachment; filename="contacts-${new Date().toISOString().split("T")[0]}.csv"`,
     },
   });

@@ -18,7 +18,7 @@ export default async function AboutPage() {
   const stats = [
     { num: s.stat_projects || "6+", label: "Projects shipped" },
     { num: s.stat_years || "4+", label: "Years building" },
-    { num: s.stat_saas || "2", label: "SaaS products" },
+    { num: s.stat_saas || "3", label: "Live apps" },
     { num: s.stat_location || "LB", label: "Based in Beirut" },
   ];
 

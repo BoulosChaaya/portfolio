@@ -1,9 +1,8 @@
-import { db } from "@/lib/db";
-import { projects } from "@/lib/db/schema";
+import { adminProjects } from "@/lib/admin-data";
 import { ProjectsTable } from "@/components/dashboard/projects-table";
 
 export default async function ProjectsPage() {
-  const allProjects = await db.select().from(projects).orderBy(projects.order);
+  const allProjects = await adminProjects();
   return (
     <div>
       <div className="flex items-center justify-between mb-8">

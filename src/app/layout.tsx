@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
-import { Geist } from "next/font/google";
+import { GeistSans } from "geist/font/sans";
 import "./globals.css";
 
-const geist = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
+// Served from this site (the geist package) instead of fetched from Google Fonts at build time,
+// so a build never depends on Google being reachable. Same font, same --font-geist-sans variable.
+const geist = GeistSans;
 
 export const metadata: Metadata = {
   title: "Boulos Chaaya — Full-Stack Developer",

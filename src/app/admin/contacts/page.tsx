@@ -1,11 +1,9 @@
-import { db } from "@/lib/db";
-import { contacts } from "@/lib/db/schema";
-import { desc } from "drizzle-orm";
+import { adminContacts } from "@/lib/admin-data";
 import { markRead, deleteContact } from "@/lib/actions/contacts";
 import { Badge } from "@/components/ui/badge";
 
 export default async function ContactsPage() {
-  const all = await db.select().from(contacts).orderBy(desc(contacts.createdAt));
+  const all = await adminContacts();
   const unread = all.filter((c) => !c.read).length;
 
   return (

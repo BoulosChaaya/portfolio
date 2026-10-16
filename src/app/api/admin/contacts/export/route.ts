@@ -1,11 +1,10 @@
-import { auth } from "@/lib/auth";
+import { currentAdmin } from "@/lib/dal";
 import { db } from "@/lib/db";
 import { contacts } from "@/lib/db/schema";
 import { desc } from "drizzle-orm";
 
 export async function GET() {
-  const session = await auth();
-  if (!session) {
+  if (!(await currentAdmin())) {
     return new Response("Unauthorized", { status: 401 });
   }
 

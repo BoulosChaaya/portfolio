@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { signOutAction } from "@/lib/actions/session";
 import { LayoutDashboard, FolderKanban, FileText, Briefcase, Mail, Settings, LogOut, Layers } from "lucide-react";
 // import { cn } from "@/lib/utils";
 import {
@@ -82,15 +83,12 @@ function AppSidebar({ email }: { email: string }) {
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild tooltip="Sign out">
-              <Link
-                href="/api/auth/signout"
-                className="text-muted-foreground hover:text-destructive"
-              >
+            <form action={signOutAction}>
+              <SidebarMenuButton type="submit" tooltip="Sign out" className="text-muted-foreground hover:text-destructive">
                 <LogOut className="h-4 w-4" />
                 <span>Sign out</span>
-              </Link>
-            </SidebarMenuButton>
+              </SidebarMenuButton>
+            </form>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>

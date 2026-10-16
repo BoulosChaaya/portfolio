@@ -3,15 +3,10 @@
 import { db } from "@/lib/db";
 import { settings } from "@/lib/db/schema";
 import { revalidatePath } from "next/cache";
-import { auth } from "@/lib/auth";
-
-async function requireAuth() {
-  const session = await auth();
-  if (!session) throw new Error("Unauthorized");
-}
+import { assertAdmin } from "@/lib/dal";
 
 export async function updateSettings(formData: FormData) {
-  await requireAuth();
+  await assertAdmin();
   const keys = [
     "bio", "available", "github", "linkedin", "email",
     "stat_projects", "stat_years", "stat_saas", "stat_location",

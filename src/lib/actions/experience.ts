@@ -4,12 +4,7 @@ import { db } from "@/lib/db";
 import { experience } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
-import { auth } from "@/lib/auth";
-
-async function requireAuth() {
-  const session = await auth();
-  if (!session) throw new Error("Unauthorized");
-}
+import { assertAdmin } from "@/lib/dal";
 
 export async function createExperience(data: {
   company: string;
@@ -18,7 +13,7 @@ export async function createExperience(data: {
   duration: string;
   description: string;
 }) {
-  await requireAuth();
+  await assertAdmin();
   await db.insert(experience).values(data);
   revalidatePath("/admin/experience");
   revalidatePath("/about");
@@ -31,14 +26,14 @@ export async function updateExperience(id: number, data: {
   duration: string;
   description: string;
 }) {
-  await requireAuth();
+  await assertAdmin();
   await db.update(experience).set(data).where(eq(experience.id, id));
   revalidatePath("/admin/experience");
   revalidatePath("/about");
 }
 
 export async function deleteExperience(id: number) {
-  await requireAuth();
+  await assertAdmin();
   await db.delete(experience).where(eq(experience.id, id));
   revalidatePath("/admin/experience");
   revalidatePath("/about");

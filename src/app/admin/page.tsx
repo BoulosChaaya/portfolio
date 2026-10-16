@@ -1,14 +1,9 @@
-import { db } from "@/lib/db";
-import { projects, posts, contacts } from "@/lib/db/schema";
+import { adminOverview } from "@/lib/admin-data";
 import Link from "next/link";
 import { FolderKanban, FileText, Mail, ArrowRight } from "lucide-react";
 
 export default async function AdminPage() {
-  const [allProjects, allPosts, allContacts] = await Promise.all([
-    db.select().from(projects),
-    db.select().from(posts),
-    db.select().from(contacts),
-  ]);
+  const { projects: allProjects, posts: allPosts, contacts: allContacts } = await adminOverview();
 
   const unread = allContacts.filter((c) => !c.read).length;
   const published = allPosts.filter((p) => p.published).length;

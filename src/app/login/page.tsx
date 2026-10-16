@@ -26,7 +26,9 @@ export default function LoginPage() {
     });
 
     if (result?.error) {
-      setError("Invalid credentials");
+      setError(result.code === "too_many_attempts"
+        ? "Too many failed attempts. Wait 15 minutes and try again."
+        : "Invalid credentials");
       setLoading(false);
       return;
     }

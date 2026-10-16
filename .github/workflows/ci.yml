@@ -1,6 +1,6 @@
 name: CI
 
-# Type check, production build and the end-to-end tests (Chromium against PostgreSQL 16) on every
+# Type check, lint, production build and the end-to-end tests (Chromium against PostgreSQL 16) on every
 # pull request and on Master. Vercel builds and deploys separately; this is the evidence a change works.
 on:
   pull_request:
@@ -38,6 +38,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run typecheck
+      - run: npm run lint
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
       - name: Keep the test report when something fails

@@ -1,12 +1,14 @@
 "use client";
 
+import type React from "react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { createSkill, deleteSkill, updateSkill } from "@/lib/actions/skills";
-import { updateSettings } from "@/lib/actions/settings";
+import { updateSettings, type SettingsFields } from "@/lib/actions/settings";
+import { ActionError, RowAction, useAdminAction } from "./use-admin-action";
 
 type Skill = { id: number; name: string; category: string; order: number | null };
 
@@ -22,24 +24,30 @@ export function SkillsManager({
   const [newSkill, setNewSkill] = useState({ name: "", category: "Frontend" });
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editForm, setEditForm] = useState({ name: "", category: "" });
-  const [statStatus, setStatStatus] = useState<"idle" | "saving" | "saved">("idle");
+  const stats = useAdminAction();
+  const current = useAdminAction();
+  const add = useAdminAction();
+  const edit = useAdminAction();
+  const [saved, setSaved] = useState<"stats" | "currently" | null>(null);
 
   const grouped = CATEGORIES.reduce((acc, cat) => {
     acc[cat] = skills.filter((s) => s.category === cat);
     return acc;
   }, {} as Record<string, Skill[]>);
 
-  async function handleAdd() {
+  function handleAdd() {
     if (!newSkill.name.trim()) return;
-    await createSkill({ ...newSkill, order: skills.length });
-    setNewSkill({ name: "", category: "Frontend" });
+    add.run(() => createSkill({ ...newSkill, order: skills.length }), () => setNewSkill({ name: "", category: "Frontend" }));
   }
 
-  async function handleSaveStats(formData: FormData) {
-    setStatStatus("saving");
-    await updateSettings(formData);
-    setStatStatus("saved");
-    setTimeout(() => setStatStatus("idle"), 2500);
+  /** Saves only the fields of the submitted form; each form's keys are listed in it. */
+  function saveSettings(which: "stats" | "currently", action: ReturnType<typeof useAdminAction>) {
+    return (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      const values = Object.fromEntries([...new FormData(e.currentTarget)].map(([key, value]) => [key, String(value)])) as SettingsFields;
+      setSaved(null);
+      action.run(() => updateSettings(values), () => { setSaved(which); setTimeout(() => setSaved(null), 2500); });
+    };
   }
 
   return (
@@ -48,11 +56,11 @@ export function SkillsManager({
       {/* Stats */}
       <div>
         <h2 className="text-base font-semibold mb-4">About Page Stats</h2>
-        <form action={handleSaveStats} className="grid grid-cols-2 gap-4">
+        <form onSubmit={saveSettings("stats", stats)} className="grid grid-cols-2 gap-4">
           {[
             { key: "stat_projects", label: "Projects stat" },
             { key: "stat_years", label: "Years stat" },
-            { key: "stat_saas", label: "SaaS stat" },
+            { key: "stat_saas", label: "Live apps stat" },
             { key: "stat_location", label: "Location stat" },
           ].map((s) => (
             <div key={s.key} className="flex flex-col gap-1.5">
@@ -60,12 +68,13 @@ export function SkillsManager({
               <Input name={s.key} defaultValue={settings[s.key]} />
             </div>
           ))}
+          <div className="col-span-2"><ActionError error={stats.error} /></div>
           <div className="col-span-2 flex items-center gap-4">
-            <Button type="submit" disabled={statStatus === "saving"}>
-              {statStatus === "saving" ? "Saving..." : "Save Stats"}
+            <Button type="submit" disabled={stats.pending}>
+              {stats.pending ? "Saving..." : "Save Stats"}
             </Button>
-            {statStatus === "saved" && (
-              <span className="text-sm text-green-600">✓ Saved</span>
+            {saved === "stats" && (
+              <span role="status" className="text-sm text-green-600">✓ Saved</span>
             )}
           </div>
         </form>
@@ -74,9 +83,10 @@ export function SkillsManager({
       {/* Currently */}
       <div>
         <h2 className="text-base font-semibold mb-4">Currently Section</h2>
-        <form action={handleSaveStats} className="space-y-4">
+        <form onSubmit={saveSettings("currently", current)} className="space-y-4">
           {[
             { key: "currently_building", label: "Building" },
+            { key: "currently_building_detail", label: "Building: one-line description (home page)" },
             { key: "currently_learning", label: "Learning" },
             { key: "currently_open", label: "Open to" },
           ].map((s) => (
@@ -85,7 +95,11 @@ export function SkillsManager({
               <Input name={s.key} defaultValue={settings[s.key]} />
             </div>
           ))}
-          <Button type="submit">Save Currently</Button>
+          <ActionError error={current.error} />
+          <div className="flex items-center gap-4">
+            <Button type="submit" disabled={current.pending}>{current.pending ? "Saving..." : "Save Currently"}</Button>
+            {saved === "currently" && <span role="status" className="text-sm text-green-600">✓ Saved</span>}
+          </div>
         </form>
       </div>
 
@@ -108,8 +122,9 @@ export function SkillsManager({
           >
             {CATEGORIES.map((c) => <option key={c}>{c}</option>)}
           </select>
-          <Button onClick={handleAdd}>Add</Button>
+          <Button onClick={handleAdd} disabled={add.pending}>{add.pending ? "Adding..." : "Add"}</Button>
         </div>
+        <div className="-mt-4 mb-6"><ActionError error={add.error ?? edit.error} /></div>
 
         {/* Skills by category */}
         <div className="space-y-6">
@@ -127,10 +142,8 @@ export function SkillsManager({
                           className="h-7 text-xs w-28"
                         />
                         <button
-                          onClick={async () => {
-                            await updateSkill(skill.id, { name: editForm.name, category: editForm.category });
-                            setEditingId(null);
-                          }}
+                          disabled={edit.pending}
+                          onClick={() => edit.run(() => updateSkill(skill.id, { name: editForm.name, category: editForm.category }), () => setEditingId(null))}
                           className="text-[11px] text-green-600 hover:underline"
                         >
                           Save
@@ -156,11 +169,7 @@ export function SkillsManager({
                         >
                           {skill.name}
                         </span>
-                        <form action={deleteSkill.bind(null, skill.id)} className="inline">
-                          <button className="text-zinc-400 hover:text-red-500 text-xs leading-none">
-                            ×
-                          </button>
-                        </form>
+                        <RowAction label="×" className="text-zinc-400 hover:text-red-500" confirmText={`Remove the skill "${skill.name}"?`} action={() => deleteSkill(skill.id)} />
                       </Badge>
                     )}
                   </div>

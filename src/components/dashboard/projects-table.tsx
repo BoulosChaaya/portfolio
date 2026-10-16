@@ -6,7 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { createProject, updateProject, deleteProject, togglePublished } from "@/lib/actions/projects";
+import { createProject, updateProject, deleteProject, togglePublished, type ProjectFields } from "@/lib/actions/projects";
+import type { ActionResult } from "@/lib/actions/result";
+import { ActionError, RowAction, useAdminAction } from "./use-admin-action";
 
 type Project = {
   id: number;
@@ -23,7 +25,7 @@ type Project = {
   order: number | null;
 };
 
-const emptyForm = {
+const emptyForm: ProjectFields = {
   title: "", slug: "", excerpt: "", description: "",
   techStack: "", liveUrl: "", githubUrl: "", category: "", featured: false,
 };
@@ -34,23 +36,21 @@ function ProjectForm({
   onCancel,
   submitLabel,
 }: {
-  initial: typeof emptyForm & { published?: boolean };
-  onSubmit: (data: any) => Promise<void>;
+  initial: ProjectFields;
+  onSubmit: (data: ProjectFields) => Promise<ActionResult>;
   onCancel: () => void;
   submitLabel: string;
 }) {
   const [form, setForm] = useState(initial);
-  const [loading, setLoading] = useState(false);
+  const { pending: loading, error, run } = useAdminAction();
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   }
 
-  async function handleSubmit(e: React.FormEvent) {
+  function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setLoading(true);
-    await onSubmit(form);
-    setLoading(false);
+    run(() => onSubmit(form), onCancel);
   }
 
   return (
@@ -99,6 +99,7 @@ function ProjectForm({
         />
         <Label htmlFor="featured">Featured</Label>
       </div>
+      <ActionError error={error} />
       <div className="flex gap-3">
         <Button type="submit" disabled={loading}>
           {loading ? "Saving..." : submitLabel}
@@ -113,15 +114,6 @@ export function ProjectsTable({ projects }: { projects: Project[] }) {
   const [adding, setAdding] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
 
-  async function handleCreate(data: typeof emptyForm) {
-    await createProject(data);
-    setAdding(false);
-  }
-
-  async function handleUpdate(id: number, data: any) {
-    await updateProject(id, { ...data, published: true });
-    setEditingId(null);
-  }
 
   return (
     <div className="space-y-6">
@@ -132,7 +124,7 @@ export function ProjectsTable({ projects }: { projects: Project[] }) {
       {adding && (
         <ProjectForm
           initial={emptyForm}
-          onSubmit={handleCreate}
+          onSubmit={createProject}
           onCancel={() => setAdding(false)}
           submitLabel="Save Project"
         />
@@ -172,14 +164,8 @@ export function ProjectsTable({ projects }: { projects: Project[] }) {
                       >
                         {editingId === p.id ? "Close" : "Edit"}
                       </button>
-                      <form action={togglePublished.bind(null, p.id, !p.published)}>
-                        <button className="text-zinc-500 text-xs hover:underline">
-                          {p.published ? "Unpublish" : "Publish"}
-                        </button>
-                      </form>
-                      <form action={deleteProject.bind(null, p.id)}>
-                        <button className="text-red-500 text-xs hover:underline">Delete</button>
-                      </form>
+                      <RowAction label={p.published ? "Unpublish" : "Publish"} action={() => togglePublished(p.id, !p.published)} />
+                      <RowAction label="Delete" className="text-red-500" confirmText={`Delete "${p.title}"? This cannot be undone.`} action={() => deleteProject(p.id)} />
                     </div>
                   </td>
                 </tr>
@@ -198,7 +184,7 @@ export function ProjectsTable({ projects }: { projects: Project[] }) {
                           category: p.category || "",
                           featured: p.featured || false,
                         }}
-                        onSubmit={(data) => handleUpdate(p.id, data)}
+                        onSubmit={(data) => updateProject(p.id, data)}
                         onCancel={() => setEditingId(null)}
                         submitLabel="Update Project"
                       />

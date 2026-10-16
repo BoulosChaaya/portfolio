@@ -1,6 +1,7 @@
 import { adminContacts } from "@/lib/admin-data";
 import { markRead, deleteContact } from "@/lib/actions/contacts";
 import { Badge } from "@/components/ui/badge";
+import { RowAction } from "@/components/dashboard/use-admin-action";
 
 export default async function ContactsPage() {
   const all = await adminContacts();
@@ -58,17 +59,9 @@ export default async function ContactsPage() {
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-3">
                     {!c.read && (
-                      <form action={markRead.bind(null, c.id)}>
-                        <button className="text-blue-500 text-xs hover:underline">
-                          Mark read
-                        </button>
-                      </form>
+                      <RowAction label="Mark read" className="text-blue-500" action={markRead.bind(null, c.id)} />
                     )}
-                    <form action={deleteContact.bind(null, c.id)}>
-                      <button className="text-red-500 text-xs hover:underline">
-                        Delete
-                      </button>
-                    </form>
+                    <RowAction label="Delete" className="text-red-500" confirmText="Delete this message? This cannot be undone." action={deleteContact.bind(null, c.id)} />
                   </div>
                 </td>
               </tr>

@@ -5,7 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { createExperience, updateExperience, deleteExperience } from "@/lib/actions/experience";
+import { createExperience, updateExperience, deleteExperience, type ExperienceFields } from "@/lib/actions/experience";
+import type { ActionResult } from "@/lib/actions/result";
+import { ActionError, RowAction, useAdminAction } from "./use-admin-action";
 
 type Experience = {
   id: number;
@@ -16,7 +18,7 @@ type Experience = {
   description: string | null;
 };
 
-const emptyForm = {
+const emptyForm: ExperienceFields = {
   company: "", role: "", location: "", duration: "", description: "",
 };
 
@@ -26,23 +28,21 @@ function ExperienceForm({
   onCancel,
   submitLabel,
 }: {
-  initial: typeof emptyForm;
-  onSubmit: (data: typeof emptyForm) => Promise<void>;
+  initial: ExperienceFields;
+  onSubmit: (data: ExperienceFields) => Promise<ActionResult>;
   onCancel: () => void;
   submitLabel: string;
 }) {
   const [form, setForm] = useState(initial);
-  const [loading, setLoading] = useState(false);
+  const { pending: loading, error, run } = useAdminAction();
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   }
 
-  async function handleSubmit(e: React.FormEvent) {
+  function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setLoading(true);
-    await onSubmit(form);
-    setLoading(false);
+    run(() => onSubmit(form), onCancel);
   }
 
   return (
@@ -69,6 +69,7 @@ function ExperienceForm({
         <Label>Description</Label>
         <Textarea name="description" value={form.description} onChange={handleChange} rows={3} />
       </div>
+      <ActionError error={error} />
       <div className="flex gap-3">
         <Button type="submit" disabled={loading}>
           {loading ? "Saving..." : submitLabel}
@@ -83,15 +84,6 @@ export function ExperienceTable({ items }: { items: Experience[] }) {
   const [adding, setAdding] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
 
-  async function handleCreate(data: typeof emptyForm) {
-    await createExperience(data);
-    setAdding(false);
-  }
-
-  async function handleUpdate(id: number, data: typeof emptyForm) {
-    await updateExperience(id, data);
-    setEditingId(null);
-  }
 
   return (
     <div className="space-y-6">
@@ -103,7 +95,7 @@ export function ExperienceTable({ items }: { items: Experience[] }) {
         <div className="border rounded-xl p-6 bg-white dark:bg-zinc-900">
           <ExperienceForm
             initial={emptyForm}
-            onSubmit={handleCreate}
+            onSubmit={createExperience}
             onCancel={() => setAdding(false)}
             submitLabel="Save"
           />
@@ -140,9 +132,7 @@ export function ExperienceTable({ items }: { items: Experience[] }) {
                       >
                         {editingId === item.id ? "Close" : "Edit"}
                       </button>
-                      <form action={deleteExperience.bind(null, item.id)}>
-                        <button className="text-red-500 text-xs hover:underline">Delete</button>
-                      </form>
+                      <RowAction label="Delete" className="text-red-500" confirmText={`Delete "${item.role}" at ${item.company}? This cannot be undone.`} action={() => deleteExperience(item.id)} />
                     </div>
                   </td>
                 </tr>
@@ -157,7 +147,7 @@ export function ExperienceTable({ items }: { items: Experience[] }) {
                           duration: item.duration || "",
                           description: item.description || "",
                         }}
-                        onSubmit={(data) => handleUpdate(item.id, data)}
+                        onSubmit={(data) => updateExperience(item.id, data)}
                         onCancel={() => setEditingId(null)}
                         submitLabel="Update"
                       />
